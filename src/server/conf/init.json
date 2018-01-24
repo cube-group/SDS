@@ -1,0 +1,9 @@
+{
+  "http": {
+    "address": ":3333"
+  },
+  "dis": {
+    "type": "memory",
+    "address": ""
+  }
+}
