@@ -1,4 +1,4 @@
-//标准http协议
+//format http protocol
 //GET /favicon.ico HTTP/1.1
 //Host: proxy.my.com:3333
 //Connection: keep-alive
@@ -18,6 +18,7 @@ import (
     "strings"
     "io"
     "runtime"
+    "server/core"
 )
 
 //error string
@@ -28,7 +29,7 @@ var errResponse string = "HTTP/1.1 500 %v\n" +
 
 //http proxy server
 func NewHttpProxyServer() error {
-    l, err := net.Listen("tcp", viper.GetString("http.address"))
+    l, err := net.Listen("tcp", viper.GetString("proxy.address"))
     if err != nil {
         fmt.Println("[err]", "listener", err.Error())
     }
@@ -87,8 +88,11 @@ func handleClientRequest(client net.Conn) {
         return
     }
     ms := queryArr[1]
-    //...todo 通过微服务名称获取其相应的ip:port
-    msAddress := "127.0.0.1:80"
+    msAddress, err := core.Dis().Get(ms)
+    if err != nil {
+        globalErr = err.Error()
+        return
+    }
 
     newFirstLine := fmt.Sprintf(
         "%v %v %v\n",

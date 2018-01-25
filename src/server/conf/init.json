@@ -1,6 +1,10 @@
 {
-  "http": {
+  "proxy": {
     "address": ":3333"
+  },
+  "register": {
+    "address": ":3334",
+    "router": "/dis"
   },
   "dis": {
     "type": "memory",
