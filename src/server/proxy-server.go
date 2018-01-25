@@ -8,6 +8,7 @@ import (
     "os"
     "github.com/spf13/viper"
     "fmt"
+    "alex/log"
 )
 
 func main() {
@@ -19,6 +20,9 @@ func main() {
     if err2 != nil {
         panic(fmt.Errorf("Fatal error config file: %s \n", err2))
     }
+
+    //log init
+    log.NewLogger("proxy-server", viper.GetString("proxy.logPath"), "Asia/Shanghai", true)
 
     //代理逻辑
     err := proxy.NewHttpProxyServer()

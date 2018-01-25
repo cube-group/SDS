@@ -1,10 +1,14 @@
 {
   "proxy": {
-    "address": ":3333"
+    "logPath": "logs/proxy",
+    "address": ":3333",
+    "loadBalance": {
+      "refreshInterval": 30
+    }
   },
   "register": {
+    "logPath": "logs/register",
     "address": ":3334",
-    "router": "/dis"
   },
   "dis": {
     "type": "memory",
