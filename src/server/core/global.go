@@ -24,9 +24,9 @@ func Dis() dis.IDis {
     if d == nil {
         switch viper.GetString("dis.type"){
         case DIS_MEMORY:
-            d = new(dis.DisMemory)
+            d = new(dis.Dis)
         default:
-            d = new(dis.DisMemory)
+            d = new(dis.Dis)
         }
         d.Init()
     }

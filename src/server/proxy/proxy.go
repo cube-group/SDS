@@ -19,6 +19,7 @@ import (
     "io"
     "runtime"
     "server/core"
+    "server/dis"
 )
 
 //error string
@@ -32,18 +33,22 @@ func NewHttpProxyServer() error {
     l, err := net.Listen("tcp", viper.GetString("proxy.address"))
     if err != nil {
         fmt.Println("[err]", "listener", err.Error())
+        return err
     }
-    fmt.Println("NewHttpProxyServer", l.Addr())
+    fmt.Println("[Proxy]Initialize", l.Addr())
 
-    for {
-        client, err := l.Accept()
-        if err != nil {
-            fmt.Println("[err]", "client-accpet", err.Error())
-            continue
+    go func() {
+        for {
+            client, err := l.Accept()
+            if err != nil {
+                fmt.Println("[err]", "client-accpet", err.Error())
+                continue
+            }
+
+            go handleClientRequest(client)
         }
-
-        go handleClientRequest(client)
-    }
+    }()
+    return nil
 }
 
 //获取标准错误内容
@@ -53,12 +58,17 @@ func getErrString(err string) []byte {
 
 //代理用户请求
 func handleClientRequest(client net.Conn) {
-    globalErr := ""
+    var globalErr string
+    var disItem *dis.DisMsItem
+
     fmt.Println("handleClientRequest", client.RemoteAddr())
 
     defer func() {
         if globalErr != "" {
             client.Write(getErrString(globalErr))
+        }
+        if disItem != nil {
+            core.Dis().Failed(disItem)
         }
         client.Close()
     }()
@@ -88,7 +98,7 @@ func handleClientRequest(client net.Conn) {
         return
     }
     ms := queryArr[1]
-    msAddress, err := core.Dis().Get(ms)
+    item, err := core.Dis().Get(ms)
     if err != nil {
         globalErr = err.Error()
         return
@@ -102,7 +112,7 @@ func handleClientRequest(client net.Conn) {
     )
     newSecondLine := fmt.Sprintf(
         "Host: %v\n",
-        msAddress,
+        item.Address,
     )
     newBytesGroup := [][]byte{
         []byte(newFirstLine),
@@ -115,7 +125,7 @@ func handleClientRequest(client net.Conn) {
     newBytes := bytes.Join(newBytesGroup, []byte(""))
 
     //获得了请求的host和port，就开始拨号吧
-    realClient, err := net.Dial("tcp", msAddress)
+    realClient, err := net.Dial("tcp", item.Address)
     defer func() {
         if realClient != nil {
             realClient.Close()
@@ -128,4 +138,7 @@ func handleClientRequest(client net.Conn) {
 
     realClient.Write(newBytes)
     io.Copy(client, realClient)
+
+    //proxy success record
+    core.Dis().Success(item)
 }

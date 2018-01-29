@@ -8,7 +8,8 @@
   },
   "register": {
     "logPath": "logs/register",
-    "address": ":3334",
+    "address": ":12345",
+    "secret": "asdfafdaafaf12132"
   },
   "dis": {
     "type": "memory",
