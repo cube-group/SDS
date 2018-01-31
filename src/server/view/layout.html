@@ -1,0 +1,29 @@
+<html class=" js flexbox canvas canvastext webgl no-touch geolocation postmessage websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths" style=""><head>
+    <title>Admin Home Page</title>
+    <!-- Bootstrap -->
+    <link href="/public/bootstrap/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/public/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
+    <link href="/public/vendors/easypiechart/jquery.easy-pie-chart.css" rel="stylesheet" media="screen">
+    <link href="/public/assets/styles.css" rel="stylesheet" media="screen">
+    <script src="/public/vendors/modernizr-2.6.2-respond-1.1.0.min.js"></script>
+</head>
+
+<body>
+<div>
+    {{template "content" .}}
+    {{template "footer" .}}
+</div>
+<!--/.fluid-container-->
+<script src="/public/vendors/jquery-1.9.1.min.js"></script>
+<script src="/public/bootstrap/js/bootstrap.min.js"></script>
+<script src="/public/vendors/easypiechart/jquery.easy-pie-chart.js"></script>
+<script src="/public/assets/scripts.js"></script>
+<script>
+    $(function() {
+        // Easy pie charts
+        $('.chart').easyPieChart({animate: 1000});
+    });
+</script>
+
+
+</body></html>

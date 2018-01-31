@@ -1,18 +1,17 @@
 {
   "proxy": {
-    "logPath": "logs/proxy",
     "address": ":3333",
     "loadBalance": {
-      "refreshInterval": 30
+      "refreshInterval": 60
     }
   },
   "register": {
-    "logPath": "logs/register",
     "address": ":12345",
-    "secret": "asdfafdaafaf12132"
+    "secret": "",
+    "expire": 30,
+    "static": "/public"
   },
   "dis": {
-    "type": "memory",
-    "address": ""
+    "type": "memory"
   }
 }

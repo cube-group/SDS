@@ -4,15 +4,15 @@
 package main
 
 import (
-    "server/proxy"
     "os"
     "github.com/spf13/viper"
     "fmt"
-    "alex/log"
-    "server/register"
+    "server/core"
+    "runtime"
 )
 
 func main() {
+    runtime.GOMAXPROCS(runtime.NumCPU())
     //config init
     viper.SetConfigName("init") // name of config file (without extension)
     viper.AddConfigPath("conf") // path to look for the config file in
@@ -22,18 +22,15 @@ func main() {
         panic(fmt.Errorf("Fatal error config file: %s \n", err2))
     }
 
-    //log init
-    log.NewLogger("proxy-server", viper.GetString("proxy.logPath"), "Asia/Shanghai", true)
-
     //开启代理服务
-    err := proxy.NewHttpProxyServer()
+    err := core.NewHttpProxyServer()
     if err != nil {
         fmt.Println("[Proxy]Init Error", err.Error())
         os.Exit(0)
     }
 
     //开启注册服务
-    err = register.NewHttpRegisterServer()
+    err = core.NewHttpRegisterServer()
     if err != nil {
         fmt.Println("[Register]Init Error", err.Error())
         os.Exit(0)

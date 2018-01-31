@@ -7,6 +7,7 @@ import (
     "time"
     "alex/utils"
     "github.com/spf13/viper"
+    "runtime"
 )
 
 //micro-service discovery interface
@@ -20,6 +21,8 @@ type IDis interface {
     Success(item *DisMsItem)
     //failed
     Failed(item *DisMsItem)
+    //get render data
+    GetData() map[string]interface{}
 }
 
 //discovery micro-service item
@@ -40,6 +43,8 @@ type DisMsItem struct {
     UseTime      int64
     //latest time
     LatestTime   time.Time
+    //register time
+    RegisterTime time.Time
 }
 
 //DisMsItem clone
@@ -53,6 +58,7 @@ func (this *DisMsItem)Clone() *DisMsItem {
         FailedCount:this.FailedCount,
         UseTime:this.UseTime,
         LatestTime:this.LatestTime,
+        RegisterTime:this.RegisterTime,
     }
 }
 
@@ -95,23 +101,33 @@ func (this *Dis)Init() {
 
 //刷新排序
 func (this *Dis)onRefreshSort(args ...interface{}) {
-    for _, item := range this.Current {
-        this.refreshMsSort(item.Name)
+    fmt.Println("onRefreshSort")
+    for ms, _ := range this.Current {
+        this.refreshMsSort(ms)
     }
 }
 
 //具体刷新某一个微服务
 func (this *Dis)refreshMsSort(ms string) {
     var msList DisMsItemList = DisMsItemList{}
-    for _, item := range this.List {
+    for key, item := range this.List {
+        if !item.RegisterTime.IsZero() && (time.Now().Unix() - item.RegisterTime.Unix()) > viper.GetInt64("register.expire") {
+            delete(this.List, key)
+            continue
+        }
         if item.Name == ms {
             msList = append(msList, *item)
         }
     }
     if len(msList) > 0 {
         sort.Sort(msList)
-        this.Current[msList[0].Name] = msList[0].Clone()
+        this.Current[ms] = msList[0].Clone()
+    } else {
+        delete(this.Current, ms)
     }
+
+    fmt.Println("[Register]", this.List)
+    fmt.Println("[Register]", this.Current)
 }
 
 //get micro-service address
@@ -135,9 +151,8 @@ func (this *Dis)Set(ms, address string) error {
     if !ok {
         this.List[uniqueKey] = &DisMsItem{Name:ms, Address:address, UniqueKey:uniqueKey}
     }
+    this.List[uniqueKey].RegisterTime = time.Now()
     this.refreshMsSort(ms)
-    fmt.Println("[Register]", this.List)
-    fmt.Println("[Register]", this.Current)
     return nil
 }
 
@@ -146,13 +161,15 @@ func (this *Dis)Success(item *DisMsItem) {
     uniqueKey := item.UniqueKey
     item, ok := this.List[uniqueKey]
     if ok {
+        useTime := time.Now().UnixNano() - this.List[uniqueKey].LatestTime.UnixNano()
         if !item.LatestTime.IsZero() {
-            useTime := time.Now().UnixNano() - this.List[uniqueKey].LatestTime.UnixNano()
             if item.UseTime > 0 {
                 this.List[uniqueKey].UseTime = int64((item.UseTime + useTime) / 2)
             } else {
                 this.List[uniqueKey].UseTime = useTime
             }
+        } else {
+            this.List[uniqueKey].UseTime = useTime
         }
         this.List[uniqueKey].RequestCount = this.List[uniqueKey].RequestCount + 1
         this.List[uniqueKey].SuccessCount = this.List[uniqueKey].SuccessCount + 1
@@ -166,6 +183,69 @@ func (this *Dis)Failed(item *DisMsItem) {
     if ok {
         this.List[uniqueKey].LatestTime = time.Now()
         this.List[uniqueKey].RequestCount = this.List[uniqueKey].RequestCount + 1
-        this.List[uniqueKey].SuccessCount = this.List[uniqueKey].SuccessCount + 1
+        this.List[uniqueKey].FailedCount = this.List[uniqueKey].FailedCount + 1
     }
+}
+
+//get the more data
+func (this *Dis)GetData() map[string]interface{} {
+    //统计信息
+    newStat := map[string]interface{}{}
+    totalRequest := 0
+    totalSuccess := 0
+    totalFailed := 0
+    var maxRequestItem *DisMsItem
+    var minRequestItem *DisMsItem
+    for _, i := range this.List {
+        totalRequest += i.RequestCount
+        totalSuccess += i.SuccessCount
+        totalFailed += i.FailedCount
+        if maxRequestItem == nil {
+            maxRequestItem = i
+        } else if maxRequestItem.RequestCount < i.RequestCount {
+            maxRequestItem = i
+        }
+        if minRequestItem == nil {
+            minRequestItem = i
+        } else if minRequestItem.RequestCount > i.RequestCount {
+            minRequestItem = i
+        }
+    }
+    if totalRequest > 0 {
+        newStat["successPercent"] = int(totalSuccess * 100 / totalRequest)
+        if maxRequestItem != nil {
+            newStat["maxPercent"] = int(maxRequestItem.RequestCount * 100 / totalRequest)
+        }
+        if minRequestItem != nil {
+            newStat["minPercent"] = int(minRequestItem.RequestCount * 100) / totalRequest
+        }
+    } else {
+        newStat["successPercent"] = 0
+        newStat["maxPercent"] = 0
+        newStat["minPercent"] = 0
+    }
+    if maxRequestItem != nil {
+        newStat["maxName"] = maxRequestItem.UniqueKey
+    } else {
+        newStat["maxName"] = "maxRequestMicroServiceName"
+    }
+    if minRequestItem != nil {
+        newStat["minName"] = minRequestItem.UniqueKey
+    } else {
+        newStat["minName"] = "minRequestMicroServiceName"
+    }
+    newStat["gonum"] = runtime.NumGoroutine()
+
+    newList := map[string]DisMsItemList{}
+    for ms, _ := range this.Current {
+        var msList DisMsItemList = DisMsItemList{}
+        for _, i := range this.List {
+            if i.Name == ms {
+                msList = append(msList, *i)
+            }
+        }
+        newList[ms] = msList
+    }
+
+    return map[string]interface{}{"list":newList, "stat":newStat}
 }
