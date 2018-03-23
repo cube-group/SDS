@@ -37,3 +37,20 @@
 * register.expire - The length of the registration of micro service (unit: Second)
 * dis.type - The default discovery mechanism currently only supports the memory mode
 * dis.address - If dis.type is the address of zookeeper, etcd, and redis (temporarily not supported)
+
+
+### 解决goole类库
+```
+git clone https://github.com/golang/net.git $GOPATH/src/golang.org/net
+
+git clone https://github.com/golang/sys.git $GOPATH/src/golang.org/sys
+
+git clone https://github.com/golang/tools.git $GOPATH/src/golang.org/tools
+
+git clone https://github.com/golang/text.git $GOPATH/src/golang.org/x
+```
+
+### 运行
+```
+cd src/server && ./server
+```

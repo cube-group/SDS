@@ -1,18 +1,10 @@
 <component name="libraryTable">
   <library name="GOPATH &lt;SDS&gt;">
     <CLASSES>
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/golang.org" />
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/github.com" />
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/alex" />
-      <root url="file://$PROJECT_DIR$/../truck/fcds/src/sys" />
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/gopkg.in" />
+      <root url="file://$USER_HOME$/github/go-timer/src/cube" />
     </CLASSES>
     <SOURCES>
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/golang.org" />
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/github.com" />
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/alex" />
-      <root url="file://$PROJECT_DIR$/../truck/fcds/src/sys" />
-      <root url="file://$PROJECT_DIR$/../truck/gobase/trunk/src/gopkg.in" />
+      <root url="file://$USER_HOME$/github/go-timer/src/cube" />
     </SOURCES>
     <excluded>
       <root url="file://$PROJECT_DIR$" />

@@ -2,7 +2,7 @@
   "proxy": {
     "address": ":3333",
     "loadBalance": {
-      "refreshInterval": 60
+      "refreshInterval": 120
     }
   },
   "register": {
