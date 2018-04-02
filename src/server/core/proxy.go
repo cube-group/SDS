@@ -26,6 +26,7 @@ var errResponse string = "HTTP/1.1 500 %v\n" +
     "Content-Type: text/html; charset=utf-8\n" +
     "Server: Golang-SDS\n" +
     "X-Powered-By: %v\n"
+var maxProxyBytes int = viper.GetInt("proxy.maxBytes")
 
 //http proxy server
 func NewHttpProxyServer() error {
@@ -64,6 +65,7 @@ func handleClientRequest(client net.Conn) {
 
     defer func() {
         if globalErr != "" {
+            fmt.Println("globalErr", globalErr)
             client.Write(getErrString(globalErr))
         }
         if disItem != nil {
@@ -72,23 +74,24 @@ func handleClientRequest(client net.Conn) {
         client.Close()
     }()
 
-    original := make([]byte, 1024);
-    _, err := client.Read(original)
-
-    if err != nil {
-        globalErr = err.Error()
-        return
-    }
+    fmt.Println("start")
+    original := make([]byte, maxProxyBytes)
+    client.Read(original)
 
     var method, query, version string
     firstNPosition := bytes.IndexByte(original, '\n')
+    if firstNPosition <= 0 {
+        globalErr = "firstNPosition error"
+        return
+    }
+    fmt.Println(firstNPosition)
     firstLine := string(original[:firstNPosition])
     fmt.Sscanf(firstLine, "%s %s %s", &method, &query, &version)
 
     leaveBytes := original[firstNPosition + 1:]
     secondNPosition := bytes.IndexByte(leaveBytes, '\n')
-    //secondLine := string(leaveBytes[:secondNPosition])
     leaveBytes = leaveBytes[secondNPosition + 1:]
+    fmt.Println(string(leaveBytes))
 
     //解析微服务名称
     queryArr := strings.Split(query, "/")
@@ -109,26 +112,20 @@ func handleClientRequest(client net.Conn) {
         fmt.Sprintf("/%v", strings.Join(queryArr[2:], "/")),
         version,
     )
-    newSecondLine := fmt.Sprintf(
-        "Host: %v\n",
-        item.Address,
-    )
     newBytesGroup := [][]byte{
         []byte(newFirstLine),
-        []byte(newSecondLine),
+        []byte(fmt.Sprintf("Host: %v\n", item.Address)),
         []byte(fmt.Sprintf("SDS-MS: %v\n", ms)),
-        []byte("Server: Golang-SDS\n"),
-        []byte(fmt.Sprintf("X-Powered-By: %v\n", runtime.Version())),
+        []byte(fmt.Sprintf("Golang X-Powered-By: %v\n", runtime.Version())),
         leaveBytes,
     }
     newBytes := bytes.Join(newBytesGroup, []byte(""))
+    fmt.Println(string(newBytes))
 
     //获得了请求的host和port，就开始拨号吧
     realClient, err := net.Dial("tcp", item.Address)
     defer func() {
-        if realClient != nil {
-            realClient.Close()
-        }
+        realClient.Close()
     }()
     if err != nil {
         globalErr = err.Error()

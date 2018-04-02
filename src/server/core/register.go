@@ -9,6 +9,7 @@ import (
 )
 
 var secret string
+
 func NewHttpRegisterServer() error {
     //register secret check
     secret = viper.GetString("register.secret")
@@ -25,13 +26,13 @@ func onRegister(w http.ResponseWriter, req *http.Request) {
     //...todo
     query := req.URL.Query()
 
-    ms := query.Get("ms")
+    name := query.Get("name")
     address := query.Get("address")
     if secret != "" {
         sign := query.Get("sign")
         time := query.Get("time")
         signMap := map[string]interface{}{
-            "ms":ms,
+            "name":name,
             "address":address,
             "time":time,
         }
@@ -41,7 +42,7 @@ func onRegister(w http.ResponseWriter, req *http.Request) {
         }
     }
 
-    err := Dis().Set(ms, address)
+    err := Dis().Set(name, address)
     if err != nil {
         w.Write([]byte(fmt.Sprintf(`{"code":100,"msg":"%v"}`, err.Error())))
     } else {

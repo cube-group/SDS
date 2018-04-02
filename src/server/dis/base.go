@@ -96,7 +96,7 @@ func (this *Dis)Init() {
 
     timer := new(utils.Timer)
     timer.Handler = this.onRefreshSort
-    timer.Start(uint64(viper.GetInt64("proxy.loadBalance.refreshInterval")))
+    timer.Start(uint64(viper.GetInt64("register.expire")))
 }
 
 //刷新排序

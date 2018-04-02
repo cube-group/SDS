@@ -1,9 +1,8 @@
 {
   "proxy": {
     "address": ":3333",
-    "loadBalance": {
-      "refreshInterval": 120
-    }
+    "maxBytes": 10240,
+    "refreshInterval": 30
   },
   "register": {
     "address": ":12345",

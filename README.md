@@ -15,9 +15,7 @@
 {
   "proxy": {
     "address": ":3333",
-    "loadBalance": {
-      "refreshInterval": 30
-    }
+    "maxBytes": 10240
   },
   "register": {
     "address": ":12345",
@@ -30,13 +28,13 @@
   }
 }
 ```
-* proxy.address - http proxy ip:address
-* proxy.loadBalance.refreshInterval - Proxy service regular priority switching frequency (unit: Second)
-* register.address - http Micro service registration ip:address
-* register.secret - http Micro service registry key
-* register.expire - The length of the registration of micro service (unit: Second)
-* dis.type - The default discovery mechanism currently only supports the memory mode
-* dis.address - If dis.type is the address of zookeeper, etcd, and redis (temporarily not supported)
+* proxy.address - 代理接口地址
+* proxy.maxBytes - 代理最大支持的字节数
+* register.address - 微服务注册接口
+* register.secret - 微服务注册秘钥(暂未启用)
+* register.expire - 微服务注册过期时间(单位:秒)
+* dis.type - memory(etcd和zookeeper暂未实现)目前仅支持单点注册和代理
+* dis.address - If dis.type is the address of zookeeper, etcd (temporarily not supported)
 
 
 ### 解决goole类库
@@ -52,5 +50,15 @@ git clone https://github.com/golang/text.git $GOPATH/src/golang.org/x
 
 ### 运行
 ```
-cd src/server && ./server
+$cd src/server && ./server
+```
+### 微服务注册
+```
+$curl http://127.0.0.1:12345/register?name=ms&address=10.10.2.2:80
+```
+### 观察当前proxy代理情况
+请求:http://127.0.0.1:12345/manager
+### 微服务请求模式
+```
+$curl http://127.0.0.1:3333/ms/controller/action?querystring
 ```
